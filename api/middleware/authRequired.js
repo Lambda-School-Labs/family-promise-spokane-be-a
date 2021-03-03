@@ -37,14 +37,17 @@ const authRequired = async (req, res, next) => {
         if (user) {
           req.user = user;
         } else {
+          console.log('THROW CATCH PATH ====>', err)
           throw new Error('Unable to process idToken');
         }
         next();
       })
       .catch((err) => {
+        console.log('SMALL CATCH PATH ====>', err)
         res.status(401).json({ message: `${err.message} error` });
       });
   } catch (err) {
+    console.log('BIG CATCH PATH ====>', err)
     next(createError(401, err.message));
   }
 };
