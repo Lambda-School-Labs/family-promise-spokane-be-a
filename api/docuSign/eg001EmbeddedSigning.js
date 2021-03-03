@@ -1,15 +1,15 @@
- //path = require("path"),
- // fs = require("fs-extra"),
- const docusign = require("docusign-esign"),
-  validator = require("validator"),
-  dsConfig = require("./config/index.js").config;
+//path = require("path"),
+// fs = require("fs-extra"),
+const docusign = require('docusign-esign'),
+  validator = require('validator'),
+  dsConfig = require('./config/index.js').config;
 const eg001EmbeddedSigning = exports,
-  eg = "eg001", // This example reference.
-  mustAuthenticate = "/ds/mustAuthenticate",
+  eg = 'eg001', // This example reference.
+  mustAuthenticate = '/ds/mustAuthenticate',
   minimumBufferMin = 3,
   signerClientId = 1, // ***************************** The id of the signer within this application. Replace with Okta ID later (It can be whatever we want it to be) *****************************
-  dsReturnUrl = dsConfig.appUrl + "/outtake",
-  dsPingUrl = dsConfig.appUrl + "/"; // Url that will be pinged by the DocuSign signing via Ajax
+  dsReturnUrl = dsConfig.appUrl + '/outtake',
+  dsPingUrl = dsConfig.appUrl + '/'; // Url that will be pinged by the DocuSign signing via Ajax
 /**
  * Create the envelope, the embedded signing, and then redirect to the DocuSign signing
  * @param {object} req Request obj
@@ -39,7 +39,7 @@ eg001EmbeddedSigning.createController = async (req, res) => {
     // staffEmail = validator.escape(body.staffEmail),
     // staffName = validator.escape(body.staffName),
     envelopeArgs = {
-      templateId: "4941e327-b539-467e-971c-9924a2ffb227",
+      templateId: '7d01e7f4-0ebd-4aa9-aedd-926f06859461',
       signer1Email: signer1Email,
       signer1Name: signer1Name,
       // signer2Email: signer2Email,
@@ -55,7 +55,7 @@ eg001EmbeddedSigning.createController = async (req, res) => {
       basePath: dsConfig.restAPIUrl,
       accountId: dsConfig.dsJWTClientId,
       envelopeArgs: envelopeArgs,
-      brandId: "37dd6dd4-9b01-4902-81ee-0da2d3c62685",
+      brandId: '37dd6dd4-9b01-4902-81ee-0da2d3c62685',
       // signerEmail: signerEmail,
       // signerName: signerName,
       // templateId: "4941e327-b539-467e-971c-9924a2ffb227",
@@ -65,16 +65,16 @@ eg001EmbeddedSigning.createController = async (req, res) => {
   try {
     results = await eg001EmbeddedSigning.worker(args);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     let errorBody = error.response.body;
-    console.log("This is the ERROR MESSAGE: ", errorBody);
+    console.log('This is the ERROR MESSAGE: ', errorBody);
     res.status(error.status || 500).json({
       message: error.message,
       errorBody: errorBody,
     });
   }
   if (results) {
-    console.log("These are results: ", results);
+    console.log('These are results: ', results);
     // Redirect the user to the embedded signing
     // Don't use an iFrame!
     // State can be stored/recovered using the framework's session or a
@@ -96,7 +96,7 @@ eg001EmbeddedSigning.worker = async (args) => {
   // args.accountId
   let dsApiClient = new docusign.ApiClient();
   dsApiClient.setBasePath(args.basePath);
-  dsApiClient.addDefaultHeader("Authorization", "Bearer " + args.accessToken);
+  dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + args.accessToken);
   let envelopesApi = new docusign.EnvelopesApi(dsApiClient),
     results = null;
 
@@ -122,7 +122,7 @@ eg001EmbeddedSigning.worker = async (args) => {
   results = await envelopesApi.createRecipientView(args.accountId, envelopeId, {
     recipientViewRequest: viewRequest,
   });
-  console.log("These are our RESULTS: ", results);
+  console.log('These are our RESULTS: ', results);
 
   return { envelopeId: envelopeId, redirectUrl: results.url };
 };
@@ -239,7 +239,7 @@ function makeEnvelope(args) {
     clientUserId: signerClientId,
     email: args.signer1Email,
     name: args.signer1Name,
-    roleName: "Signer 1",
+    roleName: 'Signer 1',
   });
 
   // let signer2 = docusign.TemplateRole.constructFromObject({
@@ -256,7 +256,7 @@ function makeEnvelope(args) {
 
   // Add the TemplateRole objects to the envelope object
   env.templateRoles = [signer1];
-  env.status = "sent"; // ***************************** We want the envelope status to be set to "sent" *****************************
+  env.status = 'sent'; // ***************************** We want the envelope status to be set to "sent" *****************************
 
   return env;
 }
@@ -277,13 +277,13 @@ function makeRecipientViewRequest(args) {
   // the session mechanism of your web framework. Query parameters
   // can be changed/spoofed very easily.
   viewRequest.returnUrl = args.dsReturnUrl;
-  console.log('returned url', args.dsReturnUrl)
+  console.log('returned url', args.dsReturnUrl);
   // ***************************** Set the url where you want the recipient to go once they are done signing *****************************
 
   // How has your app authenticated the user? In addition to your app's
   // authentication, you can include authenticate steps from DocuSign.
   // Eg, SMS authentication
-  viewRequest.authenticationMethod = "none";
+  viewRequest.authenticationMethod = 'none';
 
   // Recipient information must match embedded recipient info
   // we used to create the envelope.

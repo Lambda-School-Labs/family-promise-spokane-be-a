@@ -38,6 +38,9 @@ jspm_packages/
 .env
 .env.test
 .env.local
+*.key
+.key
+private.key
 
 #commands for back end and database 
 txt
