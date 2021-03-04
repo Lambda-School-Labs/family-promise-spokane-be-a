@@ -12,16 +12,15 @@ const config_result = dotenv.config();
 const task = require('../tasks/databaseTasks');
 //*****************DOCUSIGN *********/
 
-const DsJwtAuth = require('./docuSign/lib/DSJwtAuth')
-const eg001 = require('../api/docuSign/eg001EmbeddedSigning')
-const session = require('express-session')
-const MemoryStore = require("memorystore")(session);
-const dsConfig = require('../api/docuSign/config/index').config
-const passport = require('passport')
-const DocusignStrategy = require("passport-docusign");
-const moment = require('moment')
+const DsJwtAuth = require('./docuSign/lib/DSJwtAuth');
+const eg001 = require('../api/docuSign/eg001EmbeddedSigning');
+const session = require('express-session');
+const MemoryStore = require('memorystore')(session);
+const dsConfig = require('../api/docuSign/config/index').config;
+const passport = require('passport');
+const DocusignStrategy = require('passport-docusign');
+const moment = require('moment');
 //*****************DOCUSIGN *********/
-
 
 let max_session_min = 180;
 
@@ -79,8 +78,6 @@ app.use('/notes', notesRouter);
 app.use('/logs', logsRouter);
 app.use('/beds', bedsRouter);
 
-
-
 // error handler
 app.use(function (err, req, res, next) {
   if (err instanceof createError.HttpError) {
@@ -105,13 +102,11 @@ app.use(function (err, req, res, next) {
 
 //*****************DOCUSIGN ***************/
 
-
-const SCOPES = ["signature"];
+const SCOPES = ['signature'];
 
 let scope = SCOPES;
 
-let hostUrl = "http://localhost:3000/";
-
+let hostUrl = 'http://localhost:3000/';
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -123,7 +118,7 @@ app.use((req, res, next) => {
 app.use(
   session({
     secret: dsConfig.sessionSecret,
-    name: "ds-launcher-session",
+    name: 'ds-launcher-session',
     cookie: { maxAge: max_session_min * 60000 },
     saveUninitialized: true,
     resave: true,
@@ -133,8 +128,7 @@ app.use(
   })
 );
 
-app.post("/callDS", eg001.createController);
-
+app.post('/callDS', eg001.createController);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -145,9 +139,9 @@ let docusignStrategy = new DocusignStrategy(
   {
     production: dsConfig.production,
     clientID: dsConfig.dsClientId,
-    scope: scope.join(" "),
+    scope: scope.join(' '),
     clientSecret: dsConfig.dsClientSecret,
-    callbackURL: hostUrl + "/ds/callback",
+    callbackURL: hostUrl + '/ds/callback',
     state: true, // automatic CSRF protection.
     // See https://github.com/jaredhanson/passport-oauth2/blob/master/lib/state/session.js
   },
@@ -161,12 +155,11 @@ let docusignStrategy = new DocusignStrategy(
     user.accessToken = accessToken;
     user.refreshToken = refreshToken;
     user.expiresIn = params.expires_in;
-    user.tokenExpirationTimestamp = moment().add(user.expiresIn, "s"); // The dateTime when the access token will expire
+    user.tokenExpirationTimestamp = moment().add(user.expiresIn, 's'); // The dateTime when the access token will expire
     return done(null, user);
   }
 );
 passport.use(docusignStrategy);
-
 
 //*****************DOCUSIGN ***************/
 module.exports = app;

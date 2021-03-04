@@ -1,13 +1,3 @@
-// dsJwtAuth.js
-/**
- * @file
- * This file handles the JWT authentication with DocuSign.
- * It also looks up the user's account and base_url
- * via the OAuth::userInfo method.
- * See https://developers.docusign.com/esign-rest-api/guides/authentication/user-info-endpoints userInfo method.
- * @author DocuSign
- */
-
 'use strict';
 let DsJwtAuth = function _DsJwtAuth(req) {
   // private globals
@@ -85,12 +75,6 @@ DsJwtAuth.prototype.checkToken = function _checkToken(
  * We need a new accessToken. We will use the DocuSign SDK's function.
  */
 DsJwtAuth.prototype.getToken = async function _getToken() {
-  // Data used
-  // dsConfig.dsClientId
-  // dsConfig.impersonatedUserGuid
-  // dsConfig.privateKey
-  // dsConfig.dsOauthServer
-
   const jwtLifeSec = 10 * 60; // requested lifetime for the JWT is 10 min
   const dsApi = new docusign.ApiClient();
   dsApi.setOAuthBasePath(dsConfig.dsOauthServer.replace('https://', '')); // it should be domain only.
@@ -113,23 +97,7 @@ DsJwtAuth.prototype.getToken = async function _getToken() {
   };
 };
 
-/**
- * Sets the following variables:
- * DsJwtAuth.accountId
- * DsJwtAuth.accountName
- * DsJwtAuth.basePath
- * DsJwtAuth.userName
- * DsJwtAuth.userEmail
- * @function _getAccount
- * @returns {promise}
- * @promise
- */
 DsJwtAuth.prototype.getUserInfo = async function _getUserInfo() {
-  // Data used:
-  // dsConfig.targetAccountId
-  // dsConfig.dsOauthServer
-  // DsJwtAuth.accessToken
-
   const dsApi = new docusign.ApiClient(),
     targetAccountId = dsConfig.targetAccountId,
     baseUriSuffix = '/restapi';
@@ -138,7 +106,7 @@ DsJwtAuth.prototype.getUserInfo = async function _getUserInfo() {
   const results = await dsApi.getUserInfo(this.accessToken);
 
   let accountInfo;
-  if (!Boolean(targetAccountId)) {
+  if (!targetAccountId) {
     // find the default account
     accountInfo = results.accounts.find(
       (account) => account.isDefault === 'true'
@@ -163,31 +131,16 @@ DsJwtAuth.prototype.getUserInfo = async function _getUserInfo() {
   };
 };
 
-/**
- * Clears the accessToken. Same as logging out
- * @function
- */
 DsJwtAuth.prototype.clearToken = function () {
   // "logout" function
   this._tokenExpiration = false;
   this.accessToken = false;
 };
 
-/**
- * Store the example number in session storage so it will be
- * used after the user is authenticated
- * @function
- * @param req {object} The request object
- * @param eg {string} The example number that should be started after authentication
- */
 DsJwtAuth.prototype.setEg = function _setEg(req, eg) {
   req.session.eg = eg;
 };
 
-/**
- * Login user
- * @function
- */
 DsJwtAuth.prototype.login = function (req, res, next) {
   this.internalLogout(req, res);
   req.session.authMethod = 'jwt-auth';
@@ -218,7 +171,6 @@ DsJwtAuth.prototype.login = function (req, res, next) {
       });
     })
     .catch((e) => {
-      // console.log(e);
       let body = e.response && e.response.body;
       if (body) {
         // DocuSign API problem
@@ -285,5 +237,4 @@ DsJwtAuth.prototype._debug_log = function () {
   if (!this._debug) {
     return;
   }
-  // console.log(this._debug_prefix + ": " + m);
 };
