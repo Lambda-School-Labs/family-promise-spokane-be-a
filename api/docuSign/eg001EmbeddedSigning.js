@@ -40,7 +40,7 @@ eg001EmbeddedSigning.createController = async (req, res) => {
     // staffEmail = validator.escape(body.staffEmail),
     // staffName = validator.escape(body.staffName),
     envelopeArgs = {
-      templateId: '4941e327-b539-467e-971c-9924a2ffb227',
+      templateId: '7d01e7f4-0ebd-4aa9-aedd-926f06859461',
       signer1Email: signer1Email,
       signer1Name: signer1Name,
       // signer2Email: signer2Email,

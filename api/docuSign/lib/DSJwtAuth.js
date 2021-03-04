@@ -8,21 +8,21 @@
  * @author DocuSign
  */
 
-"use strict";
+'use strict';
 let DsJwtAuth = function _DsJwtAuth(req) {
   // private globals
-  this._debug_prefix = "DsJwtAuth";
+  this._debug_prefix = 'DsJwtAuth';
   this.accessToken = req.body && req.body.accessToken;
   this.accountId = req.body && req.body.accountId;
   this.accountName = req.body && req.body.accountName;
   this.basePath = req.body && req.body.basePath;
   this._tokenExpiration = req.body && req.body.tokenExpirationTimestamp;
-  this.scopes = "signature";
+  this.scopes = 'signature';
   if (dsConfig.examplesApi.isRoomsApi) {
     this.scopes +=
-      " dtr.rooms.read dtr.rooms.write dtr.documents.read dtr.documents.write dtr.profile.read dtr.profile.write dtr.company.read dtr.company.write room_forms";
+      ' dtr.rooms.read dtr.rooms.write dtr.documents.read dtr.documents.write dtr.profile.read dtr.profile.write dtr.company.read dtr.company.write room_forms';
   } else if (dsConfig.examplesApi.isClickApi) {
-    this.scopes += " click.manage click.send";
+    this.scopes += ' click.manage click.send';
   }
 
   // For production use, you'd want to store the refresh token in non-volatile storage since it is
@@ -31,9 +31,9 @@ let DsJwtAuth = function _DsJwtAuth(req) {
 };
 module.exports = DsJwtAuth; // SET EXPORTS for the module.
 
-const moment = require("moment"),
-  fs = require("fs"),
-  docusign = require("docusign-esign"),
+const moment = require('moment'),
+  fs = require('fs'),
+  docusign = require('docusign-esign'),
   dsConfig = require('../config/index').config,
   tokenReplaceMin = 10, // The accessToken must expire at least this number of
   tokenReplaceMinGet = 30,
@@ -61,16 +61,16 @@ DsJwtAuth.prototype.checkToken = function _checkToken(
     now = moment(),
     needToken =
       noToken ||
-      moment(this._tokenExpiration).subtract(bufferMin, "m").isBefore(now);
+      moment(this._tokenExpiration).subtract(bufferMin, 'm').isBefore(now);
   if (this._debug) {
     if (noToken) {
-      this._debug_log("checkToken: Starting up--need a token");
+      this._debug_log('checkToken: Starting up--need a token');
     }
     if (needToken && !noToken) {
-      this._debug_log("checkToken: Replacing old token");
+      this._debug_log('checkToken: Replacing old token');
     }
     if (!needToken) {
-      this._debug_log("checkToken: Using current token");
+      this._debug_log('checkToken: Using current token');
     }
   }
 
@@ -93,7 +93,7 @@ DsJwtAuth.prototype.getToken = async function _getToken() {
 
   const jwtLifeSec = 10 * 60; // requested lifetime for the JWT is 10 min
   const dsApi = new docusign.ApiClient();
-  dsApi.setOAuthBasePath(dsConfig.dsOauthServer.replace("https://", "")); // it should be domain only.
+  dsApi.setOAuthBasePath(dsConfig.dsOauthServer.replace('https://', '')); // it should be domain only.
   const results = await dsApi.requestJWTUserToken(
     dsConfig.dsClientId,
     dsConfig.impersonatedUserGuid,
@@ -103,8 +103,8 @@ DsJwtAuth.prototype.getToken = async function _getToken() {
   );
 
   const expiresAt = moment()
-    .add(results.body.expires_in, "s")
-    .subtract(tokenReplaceMin, "m");
+    .add(results.body.expires_in, 's')
+    .subtract(tokenReplaceMin, 'm');
   this.accessToken = results.body.access_token;
   this._tokenExpiration = expiresAt;
   return {
@@ -132,16 +132,16 @@ DsJwtAuth.prototype.getUserInfo = async function _getUserInfo() {
 
   const dsApi = new docusign.ApiClient(),
     targetAccountId = dsConfig.targetAccountId,
-    baseUriSuffix = "/restapi";
+    baseUriSuffix = '/restapi';
 
-  dsApi.setOAuthBasePath(dsConfig.dsOauthServer.replace("https://", "")); // it have to be domain name
+  dsApi.setOAuthBasePath(dsConfig.dsOauthServer.replace('https://', '')); // it have to be domain name
   const results = await dsApi.getUserInfo(this.accessToken);
 
   let accountInfo;
   if (!Boolean(targetAccountId)) {
     // find the default account
     accountInfo = results.accounts.find(
-      (account) => account.isDefault === "true"
+      (account) => account.isDefault === 'true'
     );
   } else {
     // find the matching account
@@ -149,7 +149,7 @@ DsJwtAuth.prototype.getUserInfo = async function _getUserInfo() {
       (account) => account.accountId == targetAccountId
     );
   }
-  if (typeof accountInfo === "undefined") {
+  if (typeof accountInfo === 'undefined') {
     throw new Error(`Target account ${targetAccountId} not found!`);
   }
 
@@ -190,7 +190,7 @@ DsJwtAuth.prototype.setEg = function _setEg(req, eg) {
  */
 DsJwtAuth.prototype.login = function (req, res, next) {
   this.internalLogout(req, res);
-  req.session.authMethod = "jwt-auth";
+  req.session.authMethod = 'jwt-auth';
   const log = async () => {
     const auth = await this.getToken();
     const user = await this.getUserInfo();
@@ -213,7 +213,7 @@ DsJwtAuth.prototype.login = function (req, res, next) {
           req.session.eg = null;
           res.redirect(`/${eg}`);
         } else {
-          res.redirect("/");
+          res.redirect('/');
         }
       });
     })
@@ -222,9 +222,9 @@ DsJwtAuth.prototype.login = function (req, res, next) {
       let body = e.response && e.response.body;
       if (body) {
         // DocuSign API problem
-        if (body.error && body.error === "consent_required") {
+        if (body.error && body.error === 'consent_required') {
           // Consent problem
-          let consent_scopes = this.scopes + " impersonation",
+          let consent_scopes = this.scopes + ' impersonation',
             consent_url =
               `${dsConfig.dsOauthServer}/oauth/auth?response_type=code&` +
               `scope=${consent_scopes}&client_id=${dsConfig.dsClientId}&` +
@@ -262,8 +262,8 @@ DsJwtAuth.prototype.internalLogout = function _internalLogout(req, res) {
 DsJwtAuth.prototype.logoutCallback = function _logoutCallback(req, res) {
   req.logout(); // see http://www.passportjs.org/docs/logout/
   this.internalLogout(req, res);
-  req.flash("info", "You have logged out.");
-  res.redirect("/");
+  req.flash('info', 'You have logged out.');
+  res.redirect('/');
 };
 
 /**
