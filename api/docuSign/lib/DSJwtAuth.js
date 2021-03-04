@@ -281,7 +281,7 @@ DsJwtAuth.prototype.logout = function _logout(req, res) {
  * @param {string} m The message to be printed
  * @private
  */
-DsJwtAuth.prototype._debug_log = function (m) {
+DsJwtAuth.prototype._debug_log = function () {
   if (!this._debug) {
     return;
   }
