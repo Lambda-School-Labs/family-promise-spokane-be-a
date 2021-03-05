@@ -34,6 +34,7 @@ eg001EmbeddedSigning.createController = async (req, res) => {
     // Additional data validation might also be appropriate
     signer1Email = validator.escape(body.signer1Email),
     signer1Name = validator.escape(body.signer1Name),
+    signerClientId = validator.escape(body.signer1Id),
     // signer2Email = validator.escape(body.signer2Email),
     // signer2Name = validator.escape(body.signer2Name),
     // staffEmail = validator.escape(body.staffEmail),
