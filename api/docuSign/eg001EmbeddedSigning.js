@@ -40,6 +40,7 @@ eg001EmbeddedSigning.createController = async (req, res) => {
     // staffEmail = validator.escape(body.staffEmail),
     // staffName = validator.escape(body.staffName),
     envelopeArgs = {
+      //Need new template id once account runs out
       templateId: '7d01e7f4-0ebd-4aa9-aedd-926f06859461',
       signer1Email: signer1Email,
       signer1Name: signer1Name,
@@ -56,6 +57,7 @@ eg001EmbeddedSigning.createController = async (req, res) => {
       basePath: dsConfig.restAPIUrl,
       accountId: dsConfig.dsJWTClientId,
       envelopeArgs: envelopeArgs,
+      //Not necesary but may want to do again
       brandId: '37dd6dd4-9b01-4902-81ee-0da2d3c62685',
       // signerEmail: signerEmail,
       // signerName: signerName,
