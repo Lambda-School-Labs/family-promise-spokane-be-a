@@ -10,6 +10,20 @@ const jsdocConfig = require('../config/jsdoc');
 const dotenv = require('dotenv');
 const config_result = dotenv.config();
 const task = require('../tasks/databaseTasks');
+//*****************DOCUSIGN *********/
+
+const DsJwtAuth = require('./docuSign/lib/DSJwtAuth')
+const eg001 = require('../api/docuSign/eg001EmbeddedSigning')
+const session = require('express-session')
+const MemoryStore = require("memorystore")(session);
+const dsConfig = require('../api/docuSign/config/index').config
+const passport = require('passport')
+const DocusignStrategy = require("passport-docusign");
+const moment = require('moment')
+//*****************DOCUSIGN *********/
+
+
+let max_session_min = 180;
 
 if (process.env.NODE_ENV != 'production' && config_result.error) {
   throw config_result.error;
@@ -65,10 +79,7 @@ app.use('/notes', notesRouter);
 app.use('/logs', logsRouter);
 app.use('/beds', bedsRouter);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
+
 
 // error handler
 app.use(function (err, req, res, next) {
@@ -92,4 +103,70 @@ app.use(function (err, req, res, next) {
   next(err);
 });
 
+//*****************DOCUSIGN ***************/
+
+
+const SCOPES = ["signature"];
+
+let scope = SCOPES;
+
+let hostUrl = "http://localhost:3000/";
+
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use((req, res, next) => {
+  req.dsAuthJwt = new DsJwtAuth(req);
+  next();
+});
+
+app.use(
+  session({
+    secret: dsConfig.sessionSecret,
+    name: "ds-launcher-session",
+    cookie: { maxAge: max_session_min * 60000 },
+    saveUninitialized: true,
+    resave: true,
+    store: new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    }),
+  })
+);
+
+app.post("/callDS", eg001.createController);
+
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+  next(createError(404));
+});
+
+let docusignStrategy = new DocusignStrategy(
+  {
+    production: dsConfig.production,
+    clientID: dsConfig.dsClientId,
+    scope: scope.join(" "),
+    clientSecret: dsConfig.dsClientSecret,
+    callbackURL: hostUrl + "/ds/callback",
+    state: true, // automatic CSRF protection.
+    // See https://github.com/jaredhanson/passport-oauth2/blob/master/lib/state/session.js
+  },
+  function _processDsResult(accessToken, refreshToken, params, profile, done) {
+    // The params arg will be passed additional parameters of the grant.
+    // See https://github.com/jaredhanson/passport-oauth2/pull/84
+    //
+    // Here we're just assigning the tokens to the account object
+    // We store the data in DSAuthCodeGrant.getDefaultAccountInfo
+    let user = profile;
+    user.accessToken = accessToken;
+    user.refreshToken = refreshToken;
+    user.expiresIn = params.expires_in;
+    user.tokenExpirationTimestamp = moment().add(user.expiresIn, "s"); // The dateTime when the access token will expire
+    return done(null, user);
+  }
+);
+passport.use(docusignStrategy);
+
+
+//*****************DOCUSIGN ***************/
 module.exports = app;
